@@ -3,7 +3,7 @@ load("frame.js");
 
 const test_sub = "LOCAL-TEST_ADS".toLowerCase();
 
-var SUB_CODE = "fsx_dat";
+var SUB_CODE = test_sub || "fsx_dat";
 var SUBJ = "InterBBS Oneliner";
 var RECIPIENT = "IBBS1LINE";
 var MAX_LEN = 80;
@@ -29,7 +29,20 @@ var TABLE_THEME = {
 var ENTRY_FROM_ATTR = LIGHTGRAY | BG_BLACK;
 var ENTRY_TEXT_ATTR = WHITE | BG_BLACK;
 var ENTRY_LINES = 1; // deprecated (kept for compatibility)
+function clamp(n, lo, hi) { return n < lo ? lo : (n > hi ? hi : n); }
 
+function gotoxySafe(f, x, y) {
+    if (!f) return;
+    x = clamp(x | 0, 1, f.width);
+    y = clamp(y | 0, 1, f.height);
+    f.gotoxy(x, y);
+}
+
+function centerLeftX(f, blockWidth) {
+    var w = clamp(blockWidth | 0, 1, f.width);
+    // Center within the *frame*, 1-based
+    return 1 + Math.floor((f.width - w) / 2);
+}
 (function main() {
     console.clear();
     console.autowrap = false;
@@ -45,7 +58,7 @@ var ENTRY_LINES = 1; // deprecated (kept for compatibility)
     var list = new Frame(1, header.height + 1, parentFrame.width, listHeight, TABLE_THEME.frame.list, parentFrame);
 
     var bannerWidth = Math.min(80, header.width);
-    var bannerX = Math.max(1, Math.floor((header.width - bannerWidth) / 2) + 1);
+    var bannerX = centerLeftX(header, bannerWidth);   // always 1..header.width
     var banner = new Frame(bannerX, 1, bannerWidth, header.height, WHITE | BG_GREEN, header);
 
     parentFrame.open();
@@ -420,9 +433,9 @@ function putXY(frame, x, y, text, attr) {
 }
 
 function putAligned(frame, y, text, attr) {
-    var blockWidth = 80;
-    var extraPadding = Math.max(0, parseInt((console.screen_columns - blockWidth) / 2));
-    frame.gotoxy(2 + extraPadding, y);
+    var blockWidth = Math.min(80, frame.width - 2);
+    var leftX = centerLeftX(frame, blockWidth) + 1;  // small inset
+    gotoxySafe(frame, leftX, y);
     frame.putmsg(String(text || ""), attr || 0);
 }
 
@@ -432,12 +445,12 @@ function putCentered(frame, y, text, attr) {
 }
 
 function putRightAligned(frame, y, text, attr, width) {
-    var blockWidth = width || 80;
-    var extraPadding = Math.max(0, parseInt((console.screen_columns - blockWidth) / 2));
-    text = String(text || "");
-    var startX = 2 + extraPadding + Math.max(0, blockWidth - text.length);
-    frame.gotoxy(startX, y);
-    frame.putmsg(text, attr || 0);
+    var blockWidth = Math.min(width || 80, frame.width - 2);
+    var leftX = centerLeftX(frame, blockWidth) + 1;
+    var s = String(text || "");
+    var startX = leftX + Math.max(0, blockWidth - s.length);
+    gotoxySafe(frame, startX, y);
+    frame.putmsg(s, attr || 0);
 }
 
 function setFooterMessage(footer, pending, message) {
