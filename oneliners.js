@@ -3,7 +3,7 @@ load("frame.js");
 
 const test_sub = "LOCAL-TEST_ADS".toLowerCase();
 
-var SUB_CODE = test_sub || "fsx_dat";
+var SUB_CODE = "fsx_dat";
 var SUBJ = "InterBBS Oneliner";
 var RECIPIENT = "IBBS1LINE";
 var MAX_LEN = 80;
